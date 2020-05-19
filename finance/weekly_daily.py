@@ -4,7 +4,7 @@ import pandas as pd
 df  = pd.read_csv("AAPL.csv")
 df1 = pd.read_csv("AAPL_W.csv")
 
-def getExpectedReturn(data, price_col_name, annualised=True, annualise_method='sophisticated',frequency=True,  frequency='daily'):
+def getExpectedReturn(data, price_col_name, annualised=True, annualise_method='sophisticated',  frequency='daily'):
     
     """
     Returns the expected return of a stock given price data.
@@ -21,7 +21,7 @@ def getExpectedReturn(data, price_col_name, annualised=True, annualise_method='s
             expected_return = returns.mean()
 
     if annualised:
-        if annualise_method == 'sophisticated':
+        if  frequency == 'daily' and  annualise_method == 'sophisticated':
             expected_return_annual = ((1 + expected_return_daily) ** 250) - 1
         elif annualise_method == 'crude':
             # Crude method
@@ -35,7 +35,6 @@ def getExpectedReturn(data, price_col_name, annualised=True, annualise_method='s
 
 
     
-#================================================================
     
     
            
