@@ -8,19 +8,16 @@ import glob
 extension = 'csv'
 entries = glob.glob('*.{}'.format(extension))
 
-filenames = []
+df_stock_all = pd.DataFrame()
 def create_10_df():
-    global df_stock_all
     df_stock_all = {}
-    filenames = {}
+    filenames = []
     columns_all={}
 
     count = 0
     for entry in entries:
         filename = os.path.splitext(entry)[0] #get filename from csv name
-        filenames[filename] = filename 
-        
-
+        filenames.append(filename) 
         columns={'Adj Close':''}
         columns['Adj Close'] = filename
         columns_all[filename] =  columns
@@ -43,36 +40,35 @@ def create_10_df():
         #finishes return all of the df of our stocks into df_stock_all with the index the same as the index of the 
         #stock on our market index
         count += 1
+
+    return df_stock_all, filenames
+
+df_stock_all = create_10_df()[0]
+filenames = create_10_df()[1]
+
+def merge_dfs(df_stock_all,filenames):
+    
+#     column =list(filenames[0].columns)
+    temp_data = {'price_t':[]}
+    df = df_stock_all[filenames[0]]
+    for index in range(len(df)):
+        temp_data['price_t'].append(np.nan)
         
-    return df_stock_all
-
-
-def merge_dfs(df_stock_all):
-    global df_price_all
-    global indices
-    index = df_stock_all[filenames[0]].index
-    
-    df_price_all = pd.DataFrame(index = index , columns = ['price_t'])
+    df_price_all = pd.DataFrame(temp_data['price_t'],index=df.index)
     # create an empty dataframe then merge the other 10 stock df into one df
-    indices = len(df_stock_all.keys())
 
-    for key in keys: 
-            df_price_all = pd.merge(df_stock_all[key],df_price_all, how='inner', on='date')
+    for name in filenames:
+        df_price_all = pd.merge(df_stock_all[name],df_price_all, how='inner', on='date')
 
 
-    df_price_all = df_price_all.drop(columns='price_t')
+    # df_price_all = df_price_all.drop(columns='price_t')
     
-    return df_price_all, indices
+    return df_price_all
+df_price_all = merge_dfs(df_stock_all,filenames)
 
 
 
 def estimate_porfolio_risk(df_price_all,indices):
-    global var_p
-    global sd_p
-    global sd_p_annual
-    global individual_risks
-    global vcv_matrix
-
     df = df_price_all
     # Calculate returns for each stock, at each time
     returns_df = df.pct_change(1)
@@ -103,9 +99,9 @@ def estimate_porfolio_risk(df_price_all,indices):
 
 
 create_10_df()
-merge_dfs(df_stock_all)
-estimate_porfolio_risk(df_price_all,indices)
-
+merge_dfs(df_stock_all,filenames)
+# estimate_porfolio_risk(df_price_all)
+df_price_all.to_csv('cov_price_all.csv',header=True)
 
 
 
